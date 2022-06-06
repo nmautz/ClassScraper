@@ -6,6 +6,9 @@ from selenium.webdriver.common.by import By
 import requests
 import time
 
+print("Starting Crawler")
+
+print("Creating Cookies")
 # Get Cookies
 options = ChromiumOptions()
 options.add_argument("--headless")
@@ -14,8 +17,8 @@ driver = webdriver.Chrome(options=options)
 driver.get("https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/registration")
 driver.find_element(By.ID, "classSearchLink").click()
 driver.find_element(By.ID, "s2id_txt_term").click()
-time.sleep(1)
-driver.find_element(By.ID, "202310").click()
+time.sleep(1)  # Waits for terms to load
+driver.find_element(By.ID, "202310").click()  # Selects Fall 2022
 driver.find_element(By.ID, "term-go").click()
 
 session_cookie = "JSESSIONID=" + driver.get_cookies()[1]["value"]
@@ -24,9 +27,8 @@ oracle_cookie = "X-Oracle-BMC-LBS-Route=" + driver.get_cookies()[0]["value"]
 driver.quit()
 
 cookie_string = str(session_cookie) + "; " + str(oracle_cookie)
-
+print("Creating Cookies Done")
 # ____________________
-
 
 # prepare request
 url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/searchResults"
@@ -55,12 +57,12 @@ while i < 2300:
                    "pageOffset": str(i),
                    "pageMaxSize": str(page_size),
                    "sortColumn": "subjectDescription", "sortDirection": "asc"}
-
+    print("Sending Request for " + str(page_size) + " classes. Starting at class #" + str(i))
     response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
+    print("Response Received")
     i += page_size
     responses.append(response.text)
 
-# print(responses)
 
 # Parse responses
 
@@ -71,4 +73,4 @@ print(oracle_cookie)
 for response in responses:
     json_response = json.loads(response)
 
-    print(json_response)
+    print(json_response["data"])
