@@ -21,6 +21,8 @@ i = 0
 
 page_size = 400  # max is 499 ish
 
+responses = []
+
 while i < 2300:
     querystring = {"txt_term": "202310", "startDatepicker": "", "endDatepicker": "",
                    "uniqueSessionId": "duhjc1654489778308", "pageOffset": str(i * page_size),
@@ -29,7 +31,30 @@ while i < 2300:
 
     response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
     i += page_size
-    print(response.text)
+    responses.append(response.text)
+
+print(responses)
+
+#Parse responses
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # =-----------------------------------=
 import requests
