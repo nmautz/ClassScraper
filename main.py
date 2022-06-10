@@ -138,6 +138,7 @@ for response in responses:
         class_list_dict["data"].append(
 
             {
+                "id": json_response["data"][i]["id"],
                 "subject": json_response["data"][i]["subject"],
                 "subjectDescription": json_response["data"][i]["subjectDescription"],
                 "courseNumber": json_response["data"][i]["courseNumber"],
