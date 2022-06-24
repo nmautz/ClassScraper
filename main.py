@@ -8,6 +8,8 @@ import time
 
 print("Starting Crawler")
 
+TERM_CODE_STR = "202410"
+
 print("Creating Cookies")
 # Get Cookies
 options = ChromiumOptions()
@@ -18,7 +20,7 @@ driver.get("https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/registration")
 driver.find_element(By.ID, "classSearchLink").click()
 driver.find_element(By.ID, "s2id_txt_term").click()
 time.sleep(1)  # Waits for terms to load
-driver.find_element(By.ID, "202310").click()  # Selects Fall 2022
+driver.find_element(By.ID, str(TERM_CODE_STR)).click()  # Selects Fall 2022
 driver.find_element(By.ID, "term-go").click()
 
 session_cookie = "JSESSIONID=" + driver.get_cookies()[1]["value"]
@@ -53,7 +55,7 @@ page_size = 400
 responses = []
 
 while i < 2300:
-    querystring = {"txt_term": "202310", "startDatepicker": "", "endDatepicker": "",
+    querystring = {"txt_term": str(TERM_CODE_STR), "startDatepicker": "", "endDatepicker": "",
                    "pageOffset": str(i),
                    "pageMaxSize": str(page_size),
                    "sortColumn": "subjectDescription", "sortDirection": "asc"}
