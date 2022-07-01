@@ -8,7 +8,7 @@ import time
 
 print("Starting Crawler")
 
-TERM_CODE_STR = "202410"
+TERM_CODE_STR = "202310"
 
 print("Creating Cookies")
 # Get Cookies
@@ -177,8 +177,15 @@ for response in responses:
             }
         )
 
+jsonSTR = json.dumps(class_list_dict)
+
+jsonSTR = jsonSTR.replace("&#39;", "\'")
+
+class_list_dict = json.loads(jsonSTR)
+
 print("Writing result to file classes.json")
 f = open("classes.json", "w")
 f.write(json.dumps(class_list_dict))
 f.close()
+
 print("Finished!")
