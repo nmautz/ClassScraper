@@ -1,10 +1,10 @@
-import requests
 import json
+import time
+
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import ChromiumOptions
 from selenium.webdriver.common.by import By
-import requests
-import time
 
 print("Starting Crawler")
 
@@ -97,7 +97,7 @@ for response in responses:
             profEmail = json_response["data"][i]["faculty"][0]["emailAddress"]
 
         # Edge case for meetingsFaculty section sometimes missing
-        #Set variables to empty str
+        # Set variables to empty str
         beginTime = ""
         buildingDescription = ""
         category = ""
@@ -115,11 +115,12 @@ for response in responses:
         friday = ""
         saturday = ""
         intrucMethDesc = ""
+        campusDesc = ""
 
         if len(json_response["data"][i]["meetingsFaculty"]) != 0:
             beginTime = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["beginTime"],
             buildingDescription = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"][
-                "buildingDescription"],
+                                      "buildingDescription"],
             category = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["category"],
             creditHourSession = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["creditHourSession"],
             endDate = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["endDate"],
@@ -134,8 +135,7 @@ for response in responses:
             thursday = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["thursday"],
             friday = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["friday"],
             saturday = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["saturday"],
-
-
+            campusDesc = json_response["data"][i]["meetingsFaculty"][0]["meetingTime"]["campusDescription"]
 
         class_list_dict["data"].append(
 
@@ -156,6 +156,7 @@ for response in responses:
                 "professorEmail": profEmail,
                 "beginTime": beginTime,
                 "buildingDescription": buildingDescription,
+                "campusDescription" : campusDesc,
                 "category": category,
                 "creditHourSession": creditHourSession,
                 "endDate": endDate,
@@ -180,6 +181,7 @@ for response in responses:
 jsonSTR = json.dumps(class_list_dict)
 
 jsonSTR = jsonSTR.replace("&#39;", "\'")
+jsonSTR = jsonSTR.replace("&amp;", "&")
 
 class_list_dict = json.loads(jsonSTR)
 
