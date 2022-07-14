@@ -166,6 +166,7 @@ for response in responses:
                 "subject": json_response["data"][i]["subject"],
                 "subjectDescription": json_response["data"][i]["subjectDescription"],
                 "courseNumber": json_response["data"][i]["courseNumber"],
+                "courseReferenceNumber": json_response["data"][i]["courseReferenceNumber"],
                 "scheduleTypeDescription": json_response["data"][i]["scheduleTypeDescription"],
                 "courseTitle": json_response["data"][i]["courseTitle"],
                 "maximumEnrollment": json_response["data"][i]["maximumEnrollment"],
