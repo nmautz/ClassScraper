@@ -33,9 +33,9 @@ driver.quit()
 
 cookie_string = str(session_cookie) + "; " + str(oracle_cookie)
 print("Creating Cookies Done")
+
+
 # ____________________
-
-
 
 
 async def request_all_classes(responses, tasks):
@@ -48,7 +48,6 @@ async def request_all_classes(responses, tasks):
 
     for task in tasks:
         await task
-
 
 
 async def request_classes(req_num, page_size, responses):
@@ -78,11 +77,11 @@ async def request_classes(req_num, page_size, responses):
             print("Response #" + str(req_num) + " Received")
             responses.append(await response.text())
 
+
 responses = []
 tasks = []
 
 asyncio.run(request_all_classes(responses, tasks))
-
 
 print("Initial Responses Complete")
 
@@ -200,11 +199,45 @@ for response in responses:
         )
 
 print("Initial Parsing Complete")
-#Get all class ids
-classIDs = []
-for section in class_list_dict["data"]:
-    classIDs.append(section["id"])
 
+
+async def async_request(url, payload, headers):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, data=payload, headers=headers) as response:
+            return await response.text()
+
+
+async def request_class_advanced(courseReferenceNumber):
+    headers = {
+        "cookie": "JSESSIONID=8FE5448A4B4BDDE7BB879135CAADF315; X-Oracle-BMC-LBS-Route=da6c046769f1e065ec273c5b1b3237cab1fca20f27da03a11a2ff120e313e9b656c62fd8a7c42ae8a4a14eee78fcaf37a61143e8e60e280ee02ab6df",
+        "Accept": "text/html, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Origin": "https://xe.gonzaga.edu",
+        "Referer": "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch"
+    }
+
+
+    # Get all course descs
+    url = "http://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
+
+    descTasks = []
+
+    for crn in courseReferenceNumber:
+        payload = "term=202310&courseReferenceNumber=" + str(crn)
+        print("Requesting advanced details for class #" + str(crn))
+        descTasks.append(asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
+
+    for task in descTasks:
+        print(await task)
+
+# Get all class ids
+CRNs = []
+for section in class_list_dict["data"]:
+    CRNs.append(section["courseReferenceNumber"])
+
+asyncio.run(request_class_advanced(CRNs))
 
 
 jsonSTR = json.dumps(class_list_dict)
