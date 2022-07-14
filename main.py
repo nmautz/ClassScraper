@@ -163,6 +163,7 @@ for response in responses:
                 "id": json_response["data"][i]["id"],
                 "subject": json_response["data"][i]["subject"],
                 "subjectDescription": json_response["data"][i]["subjectDescription"],
+                "courseReferenceNumber": json_response["data"][i]["courseReferenceNumber"],
                 "courseNumber": json_response["data"][i]["courseNumber"],
                 "scheduleTypeDescription": json_response["data"][i]["scheduleTypeDescription"],
                 "courseTitle": json_response["data"][i]["courseTitle"],
@@ -209,7 +210,6 @@ async def async_request(url, payload, headers):
 
 async def request_class_advanced(courseReferenceNumber):
     headers = {
-        "cookie": "JSESSIONID=8FE5448A4B4BDDE7BB879135CAADF315; X-Oracle-BMC-LBS-Route=da6c046769f1e065ec273c5b1b3237cab1fca20f27da03a11a2ff120e313e9b656c62fd8a7c42ae8a4a14eee78fcaf37a61143e8e60e280ee02ab6df",
         "Accept": "text/html, */*; q=0.01",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive",
@@ -228,7 +228,6 @@ async def request_class_advanced(courseReferenceNumber):
         payload = "term=202310&courseReferenceNumber=" + str(crn)
         print("Requesting advanced details for class #" + str(crn))
         descTasks.append(asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
-
     for task in descTasks:
         print(await task)
 
