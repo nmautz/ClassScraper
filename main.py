@@ -1,6 +1,9 @@
+import asyncio
 import json
 import time
+from http.client import responses
 
+import aiohttp as aiohttp
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import ChromiumOptions
@@ -32,38 +35,57 @@ cookie_string = str(session_cookie) + "; " + str(oracle_cookie)
 print("Creating Cookies Done")
 # ____________________
 
-# prepare request
-url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/searchResults"
 
-payload = ""
-headers = {
-    'Accept': "application/json, text/javascript, */*; q=0.01",
-    'Accept-Language': "en-US,en;q=0.9",
-    'Connection': "keep-alive",
-    'Cookie': cookie_string,
-    'Referer': "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
-    'Sec-Fetch-Dest': "empty",
-    'Sec-Fetch-Mode': "cors",
-    'Sec-Fetch-Site': "same-origin",
-    'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
-}
 
-i = 0
 
-page_size = 400
+async def request_all_classes(responses, tasks):
+    i = 0
 
-responses = []
+    page_size = 400
+    while i < 6:
+        tasks.append(asyncio.create_task(request_classes(i, page_size, responses)))
+        i += 1
 
-while i < 2300:
+    for task in tasks:
+        await task
+
+
+
+async def request_classes(req_num, page_size, responses):
+    # prepare request
+    url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/searchResults"
+
+    payload = ""
+    headers = {
+        'Accept': "application/json, text/javascript, */*; q=0.01",
+        'Accept-Language': "en-US,en;q=0.9",
+        'Connection': "keep-alive",
+        'Cookie': cookie_string,
+        'Referer': "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
+        'Sec-Fetch-Dest': "empty",
+        'Sec-Fetch-Mode': "cors",
+        'Sec-Fetch-Site': "same-origin",
+        'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
+    }
     querystring = {"txt_term": str(TERM_CODE_STR), "startDatepicker": "", "endDatepicker": "",
-                   "pageOffset": str(i),
+                   "pageOffset": str(req_num * page_size),
                    "pageMaxSize": str(page_size),
                    "sortColumn": "subjectDescription", "sortDirection": "asc"}
-    print("Sending Request for " + str(page_size) + " classes. Starting at class #" + str(i))
-    response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
-    print("Response Received")
-    i += page_size
-    responses.append(response.text)
+    print("Sending Request for " + str(page_size) + " classes. Starting at class #" + str(req_num * page_size))
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, data=payload, headers=headers, params=querystring) as response:
+            print("Response #" + str(req_num) + " Received")
+            responses.append(await response.text())
+
+responses = []
+tasks = []
+
+asyncio.run(request_all_classes(responses, tasks))
+
+
+print("Initial Responses Complete")
+print("Performing Requests for more information")
 
 # Parse responses
 
@@ -156,7 +178,7 @@ for response in responses:
                 "professorEmail": profEmail,
                 "beginTime": beginTime,
                 "buildingDescription": buildingDescription,
-                "campusDescription" : campusDesc,
+                "campusDescription": campusDesc,
                 "category": category,
                 "creditHourSession": creditHourSession,
                 "endDate": endDate,
