@@ -85,10 +85,9 @@ asyncio.run(request_all_classes(responses, tasks))
 
 
 print("Initial Responses Complete")
-print("Performing Requests for more information")
 
 # Parse responses
-
+print("Parsing Initial Responses")
 
 print(session_cookie)
 print(oracle_cookie)
@@ -199,6 +198,14 @@ for response in responses:
 
             }
         )
+
+print("Initial Parsing Complete")
+#Get all class ids
+classIDs = []
+for section in class_list_dict["data"]:
+    classIDs.append(section["id"])
+
+
 
 jsonSTR = json.dumps(class_list_dict)
 
