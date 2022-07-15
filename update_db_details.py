@@ -18,7 +18,7 @@ async def request_all_class_advanced(CRNs):
         tasks.append(asyncio.create_task(request_class_advanced(CRNs[i])))
         taskCRNPair.append(CRNs[i])
 
-        if i % 12 == 0 or i == len(CRNs) - 1:
+        if i % 2000 == 0 or i == len(CRNs) - 1:
             for c in range(0, len(tasks)):
                 task = await tasks[c]
                 desc = await task
