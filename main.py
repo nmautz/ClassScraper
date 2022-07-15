@@ -4,10 +4,17 @@ import time
 from http.client import responses
 
 import aiohttp as aiohttp
+import chromedriver_autoinstaller
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import ChromiumOptions
 from selenium.webdriver.common.by import By
+
+
+
+print("Installing Chromedriver if Necessary")
+chromedriver_autoinstaller.install()
+print("Finished")
 
 print("Starting Crawler")
 
@@ -81,6 +88,7 @@ async def request_classes(req_num, page_size, responses):
 responses = []
 tasks = []
 
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 asyncio.run(request_all_classes(responses, tasks))
 
 print("Initial Responses Complete")
