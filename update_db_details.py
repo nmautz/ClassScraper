@@ -1,13 +1,7 @@
 import asyncio
 import json
 import aiohttp
-from ratelimit import limits, sleep_and_retry
 
-@sleep_and_retry
-@limits(calls=1, period=15)
-def check_limit(url):
-    #empty func
-    return
 
 async def async_request(url, payload, headers):
     async with aiohttp.ClientSession() as session:
@@ -17,12 +11,17 @@ async def async_request(url, payload, headers):
 async def request_all_class_advanced(CRNs):
     tasks = []
     descriptions = []
-    for crn in CRNs:
-        tasks.append(asyncio.create_task(request_class_advanced(crn)))
-    for task in tasks:
-        desc = await task
-        print(desc)
-        descriptions.append(desc)
+
+    for i in range(0, len(CRNs)):
+        print("Fetching data on CRN:" + CRNs[i])
+        tasks.append(asyncio.create_task(request_class_advanced(CRNs[i])))
+
+        if i % 3 == 0 or i == len(CRNs)-1:
+            for task in tasks:
+                desc = await task
+                print(desc)
+                descriptions.append(desc)
+            tasks.clear()
 
     return descriptions
 
@@ -39,12 +38,10 @@ async def request_class_advanced(courseReferenceNumber):
     }
 
     # Get all course descs
-    url = "http://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
+    url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
 
 
     payload = "term=202310&courseReferenceNumber=" + str(courseReferenceNumber)
-    print("Requesting advanced details for class #" + str(courseReferenceNumber))
-    check_limit()
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
 
 
@@ -57,4 +54,5 @@ for section in class_list_json:
     CRNs.append(section["courseReferenceNumber"])
 
 p = asyncio.run(request_all_class_advanced(CRNs))
+
 print(p)
