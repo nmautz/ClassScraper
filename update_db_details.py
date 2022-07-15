@@ -8,23 +8,27 @@ async def async_request(url, payload, headers):
         async with session.post(url, data=payload, headers=headers) as response:
             return await response.text()
 
+
 async def request_all_class_advanced(CRNs):
     tasks = []
-    descriptions = []
+    taskCRNPair = []
+    descriptions = {}
 
     for i in range(0, len(CRNs)):
-        print("Fetching data on CRN:" + CRNs[i])
         tasks.append(asyncio.create_task(request_class_advanced(CRNs[i])))
+        taskCRNPair.append(CRNs[i])
 
-        if i % 3 == 0 or i == len(CRNs)-1:
-            for task in tasks:
+        if i % 12 == 0 or i == len(CRNs) - 1:
+            for c in range(0, len(tasks)):
+                task = await tasks[c]
                 desc = await task
-                print(desc)
-                descriptions.append(desc)
+                descriptions[str(taskCRNPair[c])] = desc
+                if desc == None:
+                    print("Rate limit!!")
             tasks.clear()
-
+            taskCRNPair.clear()
+            print(str(i / len(CRNs) * 100)[0:5] + "% complete")
     return descriptions
-
 
 
 async def request_class_advanced(courseReferenceNumber):
@@ -40,19 +44,23 @@ async def request_class_advanced(courseReferenceNumber):
     # Get all course descs
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
 
-
     payload = "term=202310&courseReferenceNumber=" + str(courseReferenceNumber)
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
+    return task
 
 
-f = open("classes.json")
-class_list_json = json.load(f)["data"]
+async def main():
+    f = open("classes.json")
+    class_list_json = json.load(f)["data"]
 
-# Get all class ids
-CRNs = []
-for section in class_list_json:
-    CRNs.append(section["courseReferenceNumber"])
+    # Get all class ids
+    CRNs = []
+    for section in class_list_json:
+        CRNs.append(section["courseReferenceNumber"])
 
-p = asyncio.run(request_all_class_advanced(CRNs))
+    descriptions = await request_all_class_advanced(CRNs)
 
-print(p)
+    print(descriptions)
+
+
+asyncio.run(main())
