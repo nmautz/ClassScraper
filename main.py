@@ -202,42 +202,6 @@ for response in responses:
 print("Initial Parsing Complete")
 
 
-async def async_request(url, payload, headers):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, data=payload, headers=headers) as response:
-            return await response.text()
-
-
-async def request_class_advanced(courseReferenceNumber):
-    headers = {
-        "Accept": "text/html, */*; q=0.01",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Connection": "keep-alive",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "Origin": "https://xe.gonzaga.edu",
-        "Referer": "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch"
-    }
-
-
-    # Get all course descs
-    url = "http://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
-
-    descTasks = []
-
-    for crn in courseReferenceNumber:
-        payload = "term=202310&courseReferenceNumber=" + str(crn)
-        print("Requesting advanced details for class #" + str(crn))
-        descTasks.append(asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
-    for task in descTasks:
-        print(await task)
-
-# Get all class ids
-CRNs = []
-for section in class_list_dict["data"]:
-    CRNs.append(section["courseReferenceNumber"])
-
-asyncio.run(request_class_advanced(CRNs))
-
 
 jsonSTR = json.dumps(class_list_dict)
 
