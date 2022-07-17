@@ -10,33 +10,38 @@ async def async_request(url, payload, headers):
                 return await response.text()
     except:
         print("rate limit sleeping...")
-        await asyncio.sleep(150)
-        return async_request(url, payload, headers)
+        await asyncio.sleep(15)
+        return await async_request(url, payload, headers)
 
 
-async def request_all_class_advanced(CRNs):
+async def safe_request_in_mass(CRNs, request_function):
     tasks = []
     taskCRNPair = []
-    descriptions = {}
+    results = {}
 
     for i in range(0, len(CRNs)):
-        tasks.append(asyncio.create_task(request_class_advanced(CRNs[i])))
+        tasks.append(asyncio.create_task(request_function(CRNs[i])))
         taskCRNPair.append(CRNs[i])
 
         if i % 1500 == 0 or i == len(CRNs) - 1:
             for c in range(0, len(tasks)):
                 task = await tasks[c]
-                desc = await task
-                descriptions[str(taskCRNPair[c])] = desc
-                if desc == None:
+                result = await task
+                results[str(taskCRNPair[c])] = result
+                if result == None:
                     print("Rate limit!!")
             tasks.clear()
             taskCRNPair.clear()
             print(str(i / len(CRNs) * 100)[0:5] + "% complete")
-    return descriptions
+    return results
 
 
-async def request_class_advanced(courseReferenceNumber):
+async def request_all_class_advanced(CRNs):
+
+    return await safe_request_in_mass(CRNs, request_class_desc)
+
+
+async def request_class_desc(courseReferenceNumber):
     headers = {
         "Accept": "text/html, */*; q=0.01",
         "Accept-Language": "en-US,en;q=0.9",
