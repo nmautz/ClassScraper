@@ -4,9 +4,14 @@ import aiohttp
 
 
 async def async_request(url, payload, headers):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, data=payload, headers=headers) as response:
-            return await response.text()
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=payload, headers=headers) as response:
+                return await response.text()
+    except:
+        print("rate limit sleeping...")
+        await asyncio.sleep(150)
+        return async_request(url, payload, headers)
 
 
 async def request_all_class_advanced(CRNs):
@@ -18,7 +23,7 @@ async def request_all_class_advanced(CRNs):
         tasks.append(asyncio.create_task(request_class_advanced(CRNs[i])))
         taskCRNPair.append(CRNs[i])
 
-        if i % 2000 == 0 or i == len(CRNs) - 1:
+        if i % 1500 == 0 or i == len(CRNs) - 1:
             for c in range(0, len(tasks)):
                 task = await tasks[c]
                 desc = await task
