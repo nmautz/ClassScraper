@@ -70,7 +70,7 @@ async def main():
 
     print("Starting search")
 
-    results = await safe_request_in_mass(CRNs, request_class_desc)
+    descResults = await safe_request_in_mass(CRNs, request_class_desc)
 
     print("Searching complete")
 
@@ -86,7 +86,7 @@ async def main():
 
 
     for section in class_list_json:
-        section["description"] = results[section["courseReferenceNumber"]]
+        section["description"] = descResults[section["courseReferenceNumber"]]
 
     file = open("classes.json", 'w')
 
