@@ -88,7 +88,10 @@ async def request_classes(req_num, page_size, responses):
 responses = []
 tasks = []
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+try:
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+except:
+    pass
 asyncio.run(request_all_classes(responses, tasks))
 
 print("Initial Responses Complete")

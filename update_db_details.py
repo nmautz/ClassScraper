@@ -3,7 +3,11 @@ import json
 import aiohttp
 
 
-async def async_request(url, payload, headers):
+async def async_request(url, payload, headers, limit_message):
+
+    if limit_message != "":
+        print(limit_message)
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, data=payload, headers=headers) as response:
@@ -11,7 +15,7 @@ async def async_request(url, payload, headers):
     except:
         print("rate limit sleeping...")
         await asyncio.sleep(15)
-        return await async_request(url, payload, headers)
+        return await async_request(url, payload, headers, limit_message + " trying again")
 
 
 async def safe_request_in_mass(CRNs, request_function):
@@ -55,7 +59,7 @@ async def request_class_desc(courseReferenceNumber):
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCourseDescription"
 
     payload = "term=202310&courseReferenceNumber=" + str(courseReferenceNumber)
-    task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers)))
+    task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
 
 
@@ -68,9 +72,32 @@ async def main():
     for section in class_list_json:
         CRNs.append(section["courseReferenceNumber"])
 
-    descriptions = await request_all_class_advanced(CRNs)
+    print("Starting search")
 
-    print(descriptions)
+    results = await request_all_class_advanced(CRNs)
+
+    print("Searching complete")
+
+
+
+    file = open("classes.json", 'r')
+
+    class_list_json = json.load(file)["data"]
+
+    file.close()
+
+
+    for section in class_list_json:
+        section["description"] = results[section["courseReferenceNumber"]]
+
+    file = open("classes.json", 'w')
+
+    class_list_str = str(class_list_json)
+
+    file.write(class_list_str)
+
+    print("results saved to classes.json")
+
 
 
 asyncio.run(main())
