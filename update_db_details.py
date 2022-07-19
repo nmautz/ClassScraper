@@ -40,10 +40,6 @@ async def safe_request_in_mass(CRNs, request_function):
     return results
 
 
-async def request_all_class_advanced(CRNs):
-
-    return await safe_request_in_mass(CRNs, request_class_desc)
-
 
 async def request_class_desc(courseReferenceNumber):
     headers = {
@@ -74,7 +70,7 @@ async def main():
 
     print("Starting search")
 
-    results = await request_all_class_advanced(CRNs)
+    results = await safe_request_in_mass(CRNs, request_class_desc)
 
     print("Searching complete")
 
@@ -82,7 +78,9 @@ async def main():
 
     file = open("classes.json", 'r')
 
-    class_list_json = json.load(file)["data"]
+    class_list_raw_json = json.load(file)
+
+    class_list_json = class_list_raw_json["data"]
 
     file.close()
 
@@ -92,7 +90,7 @@ async def main():
 
     file = open("classes.json", 'w')
 
-    class_list_str = str(class_list_json)
+    class_list_str = json.dumps(class_list_raw_json)
 
     file.write(class_list_str)
 
