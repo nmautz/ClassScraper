@@ -78,6 +78,23 @@ async def request_class_restrictions(courseReferenceNumber):
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
 
+async def request_class_coreqs(courseReferenceNumber):
+    url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCorequisites"
+
+    payload = "term=202310&courseReferenceNumber=" + str(courseReferenceNumber)
+    headers = {
+        "Accept": "text/html, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Origin": "https://xe.gonzaga.edu",
+        "Referer": "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin"
+    }
+    task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
+    return task
 
 async def main():
     f = open("classes.json")
@@ -96,6 +113,9 @@ async def main():
     print("Downloading restrictions")
     restrict_results = await safe_request_in_mass(CRNs, request_class_restrictions)
     print("Downloading restrictions finished")
+    print("Downloading coreqs")
+    coreq_results = await safe_request_in_mass(CRNs, request_class_coreqs)
+    print("Downloading coreqs finished")
 
 
     print("Searching complete")
@@ -114,6 +134,7 @@ async def main():
     for section in class_list_json:
         section["description"] = desc_results[section["courseReferenceNumber"]]
         section["restrictions"] = restrict_results[section["courseReferenceNumber"]]
+        section["coreqs"] = coreq_results[section["courseReferenceNumber"]]
 
     file = open("classes.json", 'w')
 
