@@ -59,6 +59,26 @@ async def request_class_desc(courseReferenceNumber):
     return task
 
 
+async def request_class_restrictions(courseReferenceNumber):
+    url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getRestrictions"
+
+    payload = "term=202310&courseReferenceNumber=" + str(courseReferenceNumber)
+    headers = {
+        "cookie": "JSESSIONID=A65A280FE3A0F0792691FAB70ADCFC5D; X-Oracle-BMC-LBS-Route=da6c046769f1e065ec273c5b1b3237cab1fca20f27da03a11a2ff120e313e9b656c62fd8a7c42ae8864fb5f4ff454dee8b168bfec3f6127cbee7f20f",
+        "Accept": "text/html, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Origin": "https://xe.gonzaga.edu",
+        "Referer": "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin"
+    }
+    task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
+    return task
+
+
 async def main():
     f = open("classes.json")
     class_list_json = json.load(f)["data"]
@@ -70,7 +90,13 @@ async def main():
 
     print("Starting search")
 
-    descResults = await safe_request_in_mass(CRNs, request_class_desc)
+    print("Downloading descriptions")
+    desc_results = await safe_request_in_mass(CRNs, request_class_desc)
+    print("Downloading descriptions finished")
+    print("Downloading restrictions")
+    restrict_results = await safe_request_in_mass(CRNs, request_class_restrictions)
+    print("Downloading restrictions finished")
+
 
     print("Searching complete")
 
@@ -86,7 +112,8 @@ async def main():
 
 
     for section in class_list_json:
-        section["description"] = descResults[section["courseReferenceNumber"]]
+        section["description"] = desc_results[section["courseReferenceNumber"]]
+        section["restrictions"] = restrict_results[section["courseReferenceNumber"]]
 
     file = open("classes.json", 'w')
 
