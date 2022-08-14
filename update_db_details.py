@@ -1,10 +1,11 @@
 import asyncio
 import json
 import aiohttp
+from bs4 import BeautifulSoup
+
 
 
 async def async_request(url, payload, headers, limit_message):
-
     if limit_message != "":
         print(limit_message)
 
@@ -38,7 +39,6 @@ async def safe_request_in_mass(CRNs, request_function):
             taskCRNPair.clear()
             print(str(i / len(CRNs) * 100)[0:5] + "% complete")
     return results
-
 
 
 async def request_class_desc(courseReferenceNumber):
@@ -78,6 +78,7 @@ async def request_class_restrictions(courseReferenceNumber):
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
 
+
 async def request_class_coreqs(courseReferenceNumber):
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getCorequisites"
 
@@ -95,6 +96,7 @@ async def request_class_coreqs(courseReferenceNumber):
     }
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
+
 
 async def request_class_prereqs(courseReferenceNumber):
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getSectionPrerequisites"
@@ -114,6 +116,7 @@ async def request_class_prereqs(courseReferenceNumber):
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
 
+
 async def request_class_fees(courseReferenceNumber):
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getFees"
 
@@ -132,6 +135,7 @@ async def request_class_fees(courseReferenceNumber):
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
 
+
 async def request_bookstore_link(courseReferenceNumber):
     url = "https://xe.gonzaga.edu/StudentRegistrationSsb/ssb/searchResults/getSectionBookstoreDetails"
 
@@ -148,6 +152,10 @@ async def request_bookstore_link(courseReferenceNumber):
     }
     task = (asyncio.create_task(async_request(url=url, payload=payload, headers=headers, limit_message="")))
     return task
+
+
+def add_html_tags(partial_html_str):
+    return "<html>\n" + partial_html_str + "</html>"
 
 
 async def main():
@@ -182,8 +190,45 @@ async def main():
 
     print("Searching complete")
 
+    #Parse Prereqs
+    restrict_keys = restrict_results.keys()
+    for key in restrict_keys:
+        restrictions = add_html_tags(restrict_results[key])
+        soup = BeautifulSoup(restrictions, 'html.parser')
+        try:
+            soup_txt = soup.text[soup.text.index(":")+3:]
+
+            restrict_txt = soup_txt[0:soup_txt.index("\n")]
+
+            restrict_txt += "Campus \n" + soup.text[soup.text.index("Must"):]
+
+            restrict_results[key] = restrict_txt
+        except:
+            restrict_results[key] = "No Restriction Data"
+
+    #Parse Coreqs
+    coreq_keys = coreq_results.keys()
+    for key in coreq_keys:
+        coreq_txt = BeautifulSoup(coreq_results[key], 'html.parser').text
+
+        try:
+            coreq_txt = coreq_txt[coreq_txt.index("Subject"):]
+            coreq_results[key] = coreq_txt
+        except:
+            coreq_results[key] = "No Coreq Data"
+
+    #Parse prereqs
+    prereq_keys = prereq_results.keys()
+    for key in prereq_keys:
+        prereq_txt = BeautifulSoup(prereq_results[key], 'html.parser').text
+
+        try:
+            prereq_results[key] = prereq_txt
+        except:
+            prereq_results[key] = "No Coreq Data"
 
 
+    # save to db
     file = open("classes.json", 'r')
 
     class_list_raw_json = json.load(file)
@@ -191,7 +236,6 @@ async def main():
     class_list_json = class_list_raw_json["data"]
 
     file.close()
-
 
     for section in class_list_json:
         section["description"] = desc_results[section["courseReferenceNumber"]]
@@ -208,7 +252,6 @@ async def main():
     file.write(class_list_str)
 
     print("results saved to classes.json")
-
 
 
 asyncio.run(main())
