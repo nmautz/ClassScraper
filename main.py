@@ -4,10 +4,17 @@ import time
 from http.client import responses
 
 import aiohttp as aiohttp
+import chromedriver_autoinstaller
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import ChromiumOptions
 from selenium.webdriver.common.by import By
+
+
+
+print("Installing Chromedriver if Necessary")
+chromedriver_autoinstaller.install()
+print("Finished")
 
 print("Starting Crawler")
 
@@ -33,9 +40,9 @@ driver.quit()
 
 cookie_string = str(session_cookie) + "; " + str(oracle_cookie)
 print("Creating Cookies Done")
+
+
 # ____________________
-
-
 
 
 async def request_all_classes(responses, tasks):
@@ -48,7 +55,6 @@ async def request_all_classes(responses, tasks):
 
     for task in tasks:
         await task
-
 
 
 async def request_classes(req_num, page_size, responses):
@@ -78,17 +84,20 @@ async def request_classes(req_num, page_size, responses):
             print("Response #" + str(req_num) + " Received")
             responses.append(await response.text())
 
+
 responses = []
 tasks = []
 
+try:
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+except:
+    pass
 asyncio.run(request_all_classes(responses, tasks))
 
-
 print("Initial Responses Complete")
-print("Performing Requests for more information")
 
 # Parse responses
-
+print("Parsing Initial Responses")
 
 print(session_cookie)
 print(oracle_cookie)
@@ -165,6 +174,7 @@ for response in responses:
                 "id": json_response["data"][i]["id"],
                 "subject": json_response["data"][i]["subject"],
                 "subjectDescription": json_response["data"][i]["subjectDescription"],
+                "courseReferenceNumber": json_response["data"][i]["courseReferenceNumber"],
                 "courseNumber": json_response["data"][i]["courseNumber"],
                 "courseReferenceNumber": json_response["data"][i]["courseReferenceNumber"],
                 "scheduleTypeDescription": json_response["data"][i]["scheduleTypeDescription"],
@@ -200,6 +210,10 @@ for response in responses:
 
             }
         )
+
+print("Initial Parsing Complete")
+
+
 
 jsonSTR = json.dumps(class_list_dict)
 
