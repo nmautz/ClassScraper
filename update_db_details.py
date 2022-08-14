@@ -4,7 +4,6 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
-
 async def async_request(url, payload, headers, limit_message):
     if limit_message != "":
         print(limit_message)
@@ -190,13 +189,13 @@ async def main():
 
     print("Searching complete")
 
-    #Parse Prereqs
+    # Parse Prereqs
     restrict_keys = restrict_results.keys()
     for key in restrict_keys:
         restrictions = add_html_tags(restrict_results[key])
         soup = BeautifulSoup(restrictions, 'html.parser')
         try:
-            soup_txt = soup.text[soup.text.index(":")+3:]
+            soup_txt = soup.text[soup.text.index(":") + 3:]
 
             restrict_txt = soup_txt[0:soup_txt.index("\n")]
 
@@ -206,7 +205,7 @@ async def main():
         except:
             restrict_results[key] = "No Restriction Data"
 
-    #Parse Coreqs
+    # Parse Coreqs
     coreq_keys = coreq_results.keys()
     for key in coreq_keys:
         coreq_txt = BeautifulSoup(coreq_results[key], 'html.parser').text
@@ -215,9 +214,9 @@ async def main():
             coreq_txt = coreq_txt[coreq_txt.index("Subject"):]
             coreq_results[key] = coreq_txt
         except:
-            coreq_results[key] = "No Coreq Data"
+            coreq_results[key] = "No corequisites"
 
-    #Parse prereqs
+    # Parse prereqs
     prereq_keys = prereq_results.keys()
     for key in prereq_keys:
         prereq_txt = BeautifulSoup(prereq_results[key], 'html.parser').text
@@ -225,7 +224,25 @@ async def main():
         try:
             prereq_results[key] = prereq_txt
         except:
-            prereq_results[key] = "No Coreq Data"
+            prereq_results[key] = "No prerequisites"
+
+    #parse fees
+    fee_keys = fee_results.keys()
+    for key in fee_keys:
+        fee_txt = BeautifulSoup(fee_results[key], 'html.parser').text
+        try:
+            fee_results[key] = fee_txt
+        except:
+            fee_results[key] = "No fees"
+
+    #parse bookstore link
+    bookstore_keys = bookstore_results.keys()
+    for key in bookstore_keys:
+
+        soup = BeautifulSoup(bookstore_results[key], 'html.parser')
+
+        for link in soup.find_all('a'):
+            bookstore_results[key] = link.get('href')
 
 
     # save to db
